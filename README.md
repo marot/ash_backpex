@@ -7,34 +7,22 @@ I built this so that I could use Backpex in my production app. It's exceedingly 
 ```elixir
 # myapp_web/live/admin/post_live.ex
 defmodule MyAppWeb.Live.Admin.PostLive do
-  use AshBackpex, resource: MyApp.Blog.Post, layout: {MyAppWeb.Layouts, :admin}, load: &__MODULE__.load/3
+    use AshBackpex.LiveResource
 
-    def load(_, _, _), do: [:author]
+    backpex do
+      resource MyApp.Blog.Post
+      load [:author]
+      layout({MyAppWeb.Layouts, :admin})
 
-    @impl Backpex.LiveResource
-    def singular_name, do: "Post"
+      fields do
+        field :title
+        field :published_at
 
-    @impl Backpex.LiveResource
-    def plural_name, do: "Posts"
-
-    @impl Backpex.LiveResource
-    def fields do
-      [
-        title: %{
-          module: Backpex.Fields.Text,
-          label: "title",
-        },
-        author: %{
-          module: Backpex.Fields.BelongsTo,
-          label: "Author",
-          display_field: :name,
-          live_resource: MyAppWeb.AdminResources.AuthorLive
-        },
-        published_at: %{
-          module: Backpex.Fields.DateTime,
-          label: "Published At"
-        }
-      ]
+        field :author do
+          display_field(:name)
+          live_resource(MyAppWeb.Live.Admin.AuthorLive)
+        end
+      end
     end
 ```
 
