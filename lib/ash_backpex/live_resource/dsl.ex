@@ -162,6 +162,36 @@ defmodule AshBackpex.LiveResource.Dsl do
     entities: [@field]
   }
 
+  defmodule Filter do
+    defstruct [:attribute, :module, :label]
+  end
+
+  @filter %Spark.Dsl.Entity{
+    name: :filter,
+    args: [:attribute],
+    target: AshBackpex.LiveResource.Dsl.Filter,
+    describe: "Configures a filter for the resource",
+    schema: [
+      {:attribute, [type: :atom, required: true, doc: "The attribute to filter on"]},
+      {:module,
+       [
+         type: :module,
+         required: true,
+         doc: "The module to use for the filter. You must create the module"
+       ]},
+      {:label,
+       [
+         type: :string,
+         doc: "The label for the filter. Defaults to the attribute name, title_cased"
+       ]}
+    ]
+  }
+
+  @filters %Spark.Dsl.Section{
+    name: :filters,
+    entities: [@filter]
+  }
+
   @backpex %Spark.Dsl.Section{
     name: :backpex,
     schema: [
@@ -226,7 +256,7 @@ defmodule AshBackpex.LiveResource.Dsl do
         doc: "Any panels to be displayed in the admin create/edit forms."
       ]
     ],
-    sections: [@fields]
+    sections: [@fields, @filters]
   }
 
   use Spark.Dsl.Extension,

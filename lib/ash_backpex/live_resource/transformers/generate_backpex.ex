@@ -109,6 +109,18 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
                   )
                 end)
 
+        @filters Spark.Dsl.Extension.get_entities(__MODULE__, [:backpex, :filters])
+                 |> Enum.reduce([], fn filter, acc ->
+                   Keyword.put(
+                     acc,
+                     filter.attribute,
+                     %{
+                       module: filter.module,
+                       label: filter.label || filter.attribute |> atom_to_title_case.()
+                     }
+                   )
+                 end)
+
         use Backpex.LiveResource,
           adapter: AshBackpex.Adapter,
           layout: Spark.Dsl.Extension.get_opt(__MODULE__, [:backpex], :layout),
@@ -135,6 +147,9 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
 
         @impl Backpex.LiveResource
         def fields(), do: @fields
+
+        @impl Backpex.LiveResource
+        def filters(), do: @filters
 
         @impl Backpex.LiveResource
         def singular_name, do: @singular_name

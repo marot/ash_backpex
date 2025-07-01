@@ -1,6 +1,6 @@
 # Ash Backpex
 
-You got your Ash in my Backpex. You got your Backpex in my Ash.
+You got your [Ash](https://ash-hq.org/) in my [Backpex](https://backpex.live/). You got your [Backpex](https://backpex.live/) in my [Ash](https://ash-hq.org/).
 
 I built this so that I could use Backpex in my production app. It's exceedingly incomplete, and for now I will only be adding features as I need them. While I hope to distribute this on Hex in the future, right now this is more of "gist" than a repo and is intended as an example for other Ash devs.
 
@@ -21,6 +21,12 @@ defmodule MyAppWeb.Live.Admin.PostLive do
         field :author do
           display_field(:name)
           live_resource(MyAppWeb.Live.Admin.AuthorLive)
+        end
+      end
+
+      filters do
+        filter :state do
+          module MyAppWeb.Live.Admin.Filters.PostStateFilter
         end
       end
     end
