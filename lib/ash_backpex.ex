@@ -30,13 +30,7 @@ defmodule AshBackpex do
 
       default_action = fn resource, action_type ->
         Ash.Resource.Info.primary_action(resource, action_type)
-        |> Kernel.then(fn a ->
-          if is_nil(a) do
-            %{}
-          else
-            a
-          end
-        end)
+        |> then(&(&1 || %{}))
         |> Map.get(:name, action_type)
       end
 

@@ -17,25 +17,27 @@ defmodule AshBackpex.Adapter do
       type: :atom,
       required: true
     ],
+    create_action: [
+      doc: """
+      The resource action to use when creating new items in the admin. Defaults to the primary create action.
+      """,
+      type: :atom
+    ],
+    read_action: [
+      doc: """
+      The resource action to use when reading items in the admin. Defaults to the primary read action.
+      """,
+      type: :atom
+    ],
     update_action: [
       doc: """
       The resource action to use when updating items in the admin. Defaults to the primary update action.
       """,
       type: :atom
     ],
-    update_changeset: [
+    destroy_action: [
       doc: """
-      Changeset to use when updating items. Additional metadata is passed as a keyword list via the third parameter:
-      - `:assigns` - the assigns
-      - `:target` - the name of the `form` target that triggered the changeset call. Default to `nil` if the call was not triggered by a form field.
-      """,
-      type: {:fun, 3},
-      required: true,
-      default: &__MODULE__.update_changeset/3
-    ],
-    create_action: [
-      doc: """
-      The resource action to use when creating new items in the admin. Defaults to the primary create action.
+      The resource action to use when destroying items in the admin. Defaults to the primary destroy action.
       """,
       type: :atom
     ],
@@ -47,6 +49,16 @@ defmodule AshBackpex.Adapter do
       """,
       type: {:fun, 3},
       default: &__MODULE__.create_changeset/3
+    ],
+    update_changeset: [
+      doc: """
+      Changeset to use when updating items. Additional metadata is passed as a keyword list via the third parameter:
+      - `:assigns` - the assigns
+      - `:target` - the name of the `form` target that triggered the changeset call. Default to `nil` if the call was not triggered by a form field.
+      """,
+      type: {:fun, 3},
+      required: true,
+      default: &__MODULE__.update_changeset/3
     ],
     load: [
       doc: """
