@@ -2,7 +2,7 @@
 
 You got your [Ash](https://ash-hq.org/) in my [Backpex](https://backpex.live/). You got your [Backpex](https://backpex.live/) in my [Ash](https://ash-hq.org/).
 
-I built this so that I could use Backpex in my production app. It's exceedingly incomplete, and for now I will only be adding features as I need them. While I hope to distribute this on Hex in the future, right now this is more of "gist" than a repo and is intended as an example for other Ash devs.
+I built this so that I could use Backpex in my production app. It's exceedingly incomplete, and for now I will only be adding features as I need them. While I hope to distribute this on Hex in the future, right now this is more of a "gist" than a repo and is intended as an example for other Ash devs.
 
 ```elixir
 # myapp_web/live/admin/post_live.ex
