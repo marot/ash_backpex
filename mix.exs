@@ -1,0 +1,56 @@
+defmodule AshBackpex.MixProject do
+  use Mix.Project
+
+  @version "0.0.1"
+  @source_url "https://github.com/enoonan/ash_backpex"
+
+  def project do
+    [
+      app: :ash_backpex,
+      version: @version,
+      elixir: "~> 1.18",
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      package: package(),
+      description: description(),
+      source_url: @source_url
+    ]
+  end
+
+  def application do
+    [
+      extra_applications: [:logger]
+    ]
+  end
+
+  defp deps do
+    [
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:ash, "~> 3.0"},
+      {:backpex, "~> 0.8"},
+      {:spark, "~> 2.0"},
+      {:phoenix_html, "~> 3.0 or ~> 4.0"}
+    ]
+  end
+
+  defp package do
+    [
+      name: "ash_backpex",
+      files: ~w(lib mix.exs README.md LICENSE),
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @source_url,
+        "Ash Framework" => "https://ash-hq.org/",
+        "Backpex" => "https://backpex.live/"
+      },
+      maintainers: ["Eileen Noonan"]
+    ]
+  end
+
+  defp description do
+    """
+    Integration library between Ash Framework and Backpex admin interface (early development).
+    Provides a DSL for creating admin interfaces for Ash resources.
+    """
+  end
+end

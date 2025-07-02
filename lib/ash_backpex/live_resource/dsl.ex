@@ -118,6 +118,12 @@ defmodule AshBackpex.LiveResource.Dsl do
             "The live resource of the association. Used to generate links navigating to the association.",
           type: :module
         ],
+        link_assocs: [
+          doc:
+            "Whether to automatically generate links to the association items. The default value is true.",
+          type: :boolean,
+          required: false
+        ],
         options_query: [
           doc: """
           Manipulates the list of available options in the select.
@@ -192,6 +198,37 @@ defmodule AshBackpex.LiveResource.Dsl do
     entities: [@filter]
   }
 
+  defmodule ItemAction do
+    defstruct [:name, :module]
+  end
+
+  @item_action %Spark.Dsl.Entity{
+    name: :action,
+    args: [:name, :module],
+    target: AshBackpex.LiveResource.Dsl.ItemAction,
+    describe: "Configures an item action for the resource",
+    schema: [
+      {:name, [type: :atom, required: true, doc: "The name of the item action"]},
+      {:module,
+       [
+         type: :module,
+         required: true,
+         doc: "The module to use for the item action. You must create the module"
+       ]}
+    ]
+  }
+
+  @item_actions %Spark.Dsl.Section{
+    name: :item_actions,
+    schema: [
+      strip_default: [
+        type: {:list, :atom},
+        doc: "Default Backpex actions to remove from the live resource"
+      ]
+    ],
+    entities: [@item_action]
+  }
+
   @backpex %Spark.Dsl.Section{
     name: :backpex,
     schema: [
@@ -256,7 +293,7 @@ defmodule AshBackpex.LiveResource.Dsl do
         doc: "Any panels to be displayed in the admin create/edit forms."
       ]
     ],
-    sections: [@fields, @filters]
+    sections: [@fields, @filters, @item_actions]
   }
 
   use Spark.Dsl.Extension,

@@ -58,8 +58,8 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
               !is_nil(Ash.Resource.Info.calculation(@resource, attribute_name)) ->
                 Ash.Resource.Info.calculation(@resource, attribute_name).type
 
-              !is_nil(Ash.Resource.Info.calculation(@resource, attribute_name)) ->
-                Ash.Resource.Info.calculation(@resource, attribute_name).kind
+              !is_nil(Ash.Resource.Info.aggregate(@resource, attribute_name)) ->
+                Ash.Resource.Info.aggregate(@resource, attribute_name).kind
 
               true ->
                 raise "Unable to derive the field type for #{inspect(attribute_name)} field in #{__MODULE__}. Please specify a field type."
@@ -69,6 +69,7 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
             Ash.Type.Boolean -> Backpex.Fields.Boolean
             Ash.Type.String -> Backpex.Fields.Text
             Ash.Type.Atom -> Backpex.Fields.Text
+            Ash.Type.CiString -> Backpex.Fields.Text
             Ash.Type.Time -> Backpex.Fields.Time
             Ash.Type.Date -> Backpex.Fields.Date
             Ash.Type.UtcDatetime -> Backpex.Fields.DateTime
@@ -89,19 +90,29 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
         end
 
         @fields Spark.Dsl.Extension.get_entities(__MODULE__, [:backpex, :fields])
+                |> Enum.reverse()
                 |> Enum.reduce([], fn field, acc ->
+                  module = field.module || field.attribute |> try_derive_module.()
+
                   Keyword.put(
                     acc,
                     field.attribute,
                     %{
-                      module: field.module || field.attribute |> try_derive_module.(),
+                      module: module,
                       label: field.label || field.attribute |> atom_to_title_case.(),
                       only: field.only,
                       except: field.except,
                       default: field.default,
                       options: field.options,
                       display_field: field.display_field,
-                      live_resource: field.live_resource
+                      live_resource: field.live_resource,
+                      link_assocs:
+                        case {module, Map.get(field, :link_assocs)} do
+                          {Backpex.Fields.HasMany, nil} -> true
+                          {Backpex.Fields.HasMany, true} -> true
+                          {Backpex.Fields.HasMany, false} -> false
+                          _ -> nil
+                        end
                     }
                     |> Map.to_list()
                     |> Enum.reject(fn {k, v} -> is_nil(v) end)
@@ -120,6 +131,23 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
                      }
                    )
                  end)
+
+        @item_actions Spark.Dsl.Extension.get_entities(__MODULE__, [:backpex, :item_actions])
+                      |> Enum.reduce([], fn action, acc ->
+                        Keyword.put(
+                          acc,
+                          action.name,
+                          %{
+                            module: action.module
+                          }
+                        )
+                      end)
+
+        @item_action_strip_defaults Spark.Dsl.Extension.get_opt(
+                                      __MODULE__,
+                                      [:backpex, :item_actions],
+                                      :strip_default
+                                    ) || []
 
         use Backpex.LiveResource,
           adapter: AshBackpex.Adapter,
@@ -152,6 +180,16 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
         def filters(), do: @filters
 
         @impl Backpex.LiveResource
+        def item_actions(defaults) do
+          defaults = Keyword.drop(defaults, @item_action_strip_defaults)
+
+          @item_actions
+          |> Enum.reduce(defaults, fn {k, v}, acc ->
+            Keyword.put(acc, k, v)
+          end)
+        end
+
+        @impl Backpex.LiveResource
         def singular_name, do: @singular_name
 
         @impl Backpex.LiveResource
@@ -178,8 +216,12 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
                 !deny
 
               curr_user ->
-                assigns |> dbg
-                Ash.can?({@resource, action}, curr_user)
+                # assigns
+                if (Ash.Resource.Info.action(@resource, action)) do
+                  Ash.can?({@resource, action}, curr_user)
+                else
+                  false
+                end
             end
           end
 

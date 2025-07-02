@@ -268,9 +268,9 @@ defmodule AshBackpex.Adapter do
   Inserts given item.
   """
   @impl Backpex.Adapter
-  def insert(changeset, _live_resource) do
+  def insert(changeset, live_resource) do
     # config = live_resource.config(:adapter_config)
-    # dbg({item, live_resource})
+    dbg({changeset, live_resource})
     # raise "hahaha"
     changeset |> Ash.create(authorize?: false)
 

@@ -2,7 +2,26 @@
 
 You got your [Ash](https://ash-hq.org/) in my [Backpex](https://backpex.live/). You got your [Backpex](https://backpex.live/) in my [Ash](https://ash-hq.org/).
 
-I built this so that I could use Backpex in my production app. It's exceedingly incomplete, and for now I will only be adding features as I need them. While I hope to distribute this on Hex in the future, right now this is more of a "gist" than a repo and is intended as an example for other Ash devs.
+An integration library that brings together Ash Framework's powerful resource system with Backpex's admin interface capabilities. This library provides a clean DSL for creating admin interfaces directly from your Ash resources.
+
+> Warning!
+> Backpex itself is pre-1.0 so expect the API to change in a breaking way! Also, it cannot currently take full advantage of Ash authorization policies. For now I would only recommend using it in a high-trust environment such as internal tooling.
+
+This is a partial implementation - feel free to open a github issue to request additional features or submit a PR if you're into that kind of thing ;)
+
+## Installation
+
+Add `ash_backpex` to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [
+    {:ash_backpex, "~> 0.0.1"}
+  ]
+end
+```
+
+## Usage
 
 ```elixir
 # myapp_web/live/admin/post_live.ex
@@ -30,10 +49,9 @@ defmodule MyAppWeb.Live.Admin.PostLive do
         end
       end
     end
+end
 ```
 
 ## Thanks!
 
-Building this little integration seemed like a better business decision than any alternatives, which is a credit to the great work of the Backpex team!
-
-Claude wrote the Phoenix Form protocol implementation for Ash.Changeset. Needs testing, etc.
+Building this little integration seemed easier than any alternatives to get the admin I wanted, which is a credit to the great work of the Backpex team!
