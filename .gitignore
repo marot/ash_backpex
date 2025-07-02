@@ -22,4 +22,4 @@ test-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
-/.elixir-ls/
+.elixir_ls
