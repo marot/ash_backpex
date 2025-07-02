@@ -1,19 +1,29 @@
 defmodule AshBackpex.MixProject do
   use Mix.Project
 
-  @version "0.0.1"
+  @version "0.0.2"
   @source_url "https://github.com/enoonan/ash_backpex"
 
   def project do
     [
       app: :ash_backpex,
+      name: "Ash Backpex",
       version: @version,
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
       description: description(),
-      source_url: @source_url
+      source_url: @source_url,
+      docs: &docs/0
+    ]
+  end
+
+  defp docs do
+    [
+      # The main page in the docs
+      main: "Ash Backpex",
+      extras: ["README.md"]
     ]
   end
 
