@@ -2,6 +2,12 @@
 
 <!-- changelog -->
 
+## [v0.0.3]
+
+### Improvements
+
+Learn more about `ex_doc` and get main docs to land on README.md.
+
 ## [v0.0.2]
 
 ### Improvements
