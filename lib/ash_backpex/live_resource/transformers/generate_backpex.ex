@@ -149,6 +149,17 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
                                       :strip_default
                                     ) || []
 
+        @resource_actions Spark.Dsl.Extension.get_entities(__MODULE__, [:backpex, :resource_actions])
+                          |> Enum.reduce([], fn action, acc ->
+                            Keyword.put(
+                              acc,
+                              action.name,
+                              %{
+                                module: action.module
+                              }
+                            )
+                          end)
+
         use Backpex.LiveResource,
           adapter: AshBackpex.Adapter,
           layout: Spark.Dsl.Extension.get_opt(__MODULE__, [:backpex], :layout),
@@ -189,6 +200,13 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
           end)
         end
 
+        if @resource_actions != [] do
+          @impl Backpex.LiveResource
+          def resource_actions do
+            @resource_actions
+          end
+        end
+
         @impl Backpex.LiveResource
         def singular_name, do: @singular_name
 
@@ -201,7 +219,7 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
         def load(_, _, _), do: Spark.Dsl.Extension.get_opt(__MODULE__, [:backpex], :load)
 
         @impl Backpex.LiveResource
-        def can?(assigns, action, item) when action in [:index, :show, :edit, :delete, :new] do
+        def can?(assigns, action, item) do
           deny_if_no_user_present_for_action? = fn resource, assigns, action_type, deny ->
             action =
               case action_type do
@@ -231,6 +249,23 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
             :edit -> deny_if_no_user_present_for_action?.(@resource, assigns, :update, true)
             :delete -> deny_if_no_user_present_for_action?.(@resource, assigns, :destroy, true)
             :new -> deny_if_no_user_present_for_action?.(@resource, assigns, :create, true)
+            custom_action ->
+              # Check if it's a custom resource action
+              if Keyword.has_key?(@resource_actions, custom_action) do
+                # For custom resource actions, check if the action exists on the resource
+                case Map.get(assigns, :current_user) do
+                  nil -> false
+                  curr_user ->
+                    if Ash.Resource.Info.action(@resource, custom_action) do
+                      Ash.can?({@resource, custom_action}, curr_user)
+                    else
+                      false
+                    end
+                end
+              else
+                # Default to false for unknown actions
+                false
+              end
           end
         end
 
