@@ -10,16 +10,6 @@ config :demo,
   ecto_repos: [Demo.Repo],
   generators: [timestamp_type: :utc_datetime]
 
-config :demo, DemoWeb.Endpoint,
-  url: [host: "localhost"],
-  adapter: Bandit.PhoenixAdapter,
-  render_errors: [
-    formats: [html: DemoWeb.ErrorHTML, json: DemoWeb.ErrorJSON],
-    layout: false
-  ],
-  pubsub_server: Demo.PubSub,
-  live_view: [signing_salt: "n3YLtKq8"]
-
 config :esbuild,
   version: "0.17.11",
   demo: [
@@ -44,6 +34,8 @@ config :backpex,
   translator_function: {DemoWeb.CoreComponents, :translate_backpex},
   error_translator_function: {DemoWeb.CoreComponents, :translate_error}
 
+config :backpex, :pubsub_server, Demo.PubSub
+
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
@@ -55,8 +47,6 @@ config :demo,
   generators: [timestamp_type: :utc_datetime],
   ash_domains: [Demo.Blog]
 
-config :backpex, :pubsub_server, Demo.PubSub
-
 # Configure your database
 config :demo, Demo.Repo,
   username: "postgres",
@@ -67,8 +57,14 @@ config :demo, Demo.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-# For development
 config :demo, DemoWeb.Endpoint,
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [
+    formats: [html: DemoWeb.ErrorHTML, json: DemoWeb.ErrorJSON],
+    layout: false
+  ],
+  live_view: [signing_salt: "n3YLtKq8"],
+  url: [host: "localhost"],
   http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
   code_reloader: true,

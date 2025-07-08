@@ -8,9 +8,7 @@ defmodule DemoWeb.PostLive do
     load([:word_count])
 
     fields do
-      field :title do
-        searchable(true)
-      end
+      field(:title)
 
       field :content do
         module(Backpex.Fields.Textarea)
