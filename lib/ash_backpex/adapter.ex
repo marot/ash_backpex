@@ -261,7 +261,7 @@ defmodule AshBackpex.Adapter do
   Inserts given item.
   """
   @impl Backpex.Adapter
-  def insert(changeset, live_resource) do
+  def insert(changeset, _live_resource) do
     changeset |> Ash.create(authorize?: false)
   end
 
@@ -269,7 +269,7 @@ defmodule AshBackpex.Adapter do
   Updates given item.
   """
   @impl Backpex.Adapter
-  def update(changeset, live_resource) do
+  def update(changeset, _live_resource) do
     changeset |> Ash.update(authorize?: false)
   end
 
@@ -286,14 +286,32 @@ defmodule AshBackpex.Adapter do
   """
   @impl Backpex.Adapter
   def change(item, attrs, _fields, assigns, _live_resource, _opts) do
-    action = assigns.form.source.action
+    # Check if this is a resource action by looking at the action_type in assigns
+    case Map.get(assigns, :action_type) do
+      :resource ->
+        # For resource actions, delegate to the resource action's changeset function
+        # The changeset_function should be present in assigns for resource actions
+        case Map.get(assigns, :changeset_function) do
+          nil ->
+            # Fallback: return an empty Ecto changeset
+            Ecto.Changeset.change(item, attrs)
+            
+          changeset_fn when is_function(changeset_fn, 3) ->
+            # Call the resource action's changeset function
+            changeset_fn.(item, attrs, %{assigns: assigns})
+        end
+        
+      _ ->
+        # For regular create/update actions, use Ash changesets
+        action = assigns.form.source.action
+        
+        case assigns.form.source.action_type do
+          :create ->
+            Ash.Changeset.for_create(item.__struct__, action, attrs)
 
-    case assigns.form.source.action_type do
-      :create ->
-        Ash.Changeset.for_create(item.__struct__, action, attrs)
-
-      :update ->
-        Ash.Changeset.for_update(item, action, attrs)
+          :update ->
+            Ash.Changeset.for_update(item, action, attrs)
+        end
     end
   end
 end

@@ -234,6 +234,31 @@ defmodule AshBackpex.LiveResource.Dsl do
     entities: [@item_action]
   }
 
+  defmodule ResourceAction do
+    defstruct [:name, :module]
+  end
+
+  @resource_action %Spark.Dsl.Entity{
+    name: :action,
+    args: [:name, :module],
+    target: AshBackpex.LiveResource.Dsl.ResourceAction,
+    describe: "Configures a resource action for the resource",
+    schema: [
+      {:name, [type: :atom, required: true, doc: "The name of the resource action"]},
+      {:module,
+       [
+         type: :module,
+         required: true,
+         doc: "The module to use for the resource action. You must create the module"
+       ]}
+    ]
+  }
+
+  @resource_actions %Spark.Dsl.Section{
+    name: :resource_actions,
+    entities: [@resource_action]
+  }
+
   @backpex %Spark.Dsl.Section{
     name: :backpex,
     schema: [
@@ -301,7 +326,7 @@ defmodule AshBackpex.LiveResource.Dsl do
           "Panels to be displayed in the admin create/edit forms. Format: [panel_key: \"Panel Title\"]"
       ]
     ],
-    sections: [@fields, @filters, @item_actions]
+    sections: [@fields, @filters, @item_actions, @resource_actions]
   }
 
   use Spark.Dsl.Extension,

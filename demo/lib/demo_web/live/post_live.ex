@@ -30,5 +30,9 @@ defmodule DemoWeb.PostLive do
         except([:new, :edit])
       end
     end
+
+    resource_actions do
+      action(:send_email, DemoWeb.ResourceActions.PostSendEmail)
+    end
   end
 end
