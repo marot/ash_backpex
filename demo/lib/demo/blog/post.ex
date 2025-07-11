@@ -127,12 +127,12 @@ defmodule Demo.Blog.Post do
         IO.puts("Importing posts from CSV file")
         IO.puts("Default category: #{input.arguments.default_category_id}")
         IO.puts("Publish imported: #{input.arguments.publish_imported}")
-        
+
         # In a real implementation, you would:
         # 1. Read the CSV file
         # 2. Parse each row
         # 3. Create posts with the parsed data
-        
+
         {:ok, %{imported: 5}}  # Mock result
       end
     end
@@ -159,7 +159,7 @@ defmodule Demo.Blog.Post do
         # Mock report generation
         report_type = input.arguments.report_type
         IO.puts("Generating #{report_type} report from #{input.arguments.start_date} to #{input.arguments.end_date}")
-        
+
         {:ok, %{
           report_type: report_type,
           total_posts: 42,
@@ -173,20 +173,14 @@ defmodule Demo.Blog.Post do
         allow_nil? false
       end
 
-      argument :conditions, :map do
-        allow_nil? true
-        default %{}
-      end
-
       run fn input, context ->
         # Mock bulk category assignment
         # In a real implementation, you would:
         # 1. Query posts based on conditions
         # 2. Update their category_id
-        
+
         IO.puts("Assigning category #{input.arguments.category_id} to posts matching conditions")
-        IO.inspect(input.arguments.conditions, label: "Conditions")
-        
+
         {:ok, %{updated: 10}}  # Mock result
       end
     end

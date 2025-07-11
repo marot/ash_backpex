@@ -15,12 +15,11 @@ defmodule DemoWeb.PostLive do
       end
 
       field(:published)
-      
-      field :category_id do
+
+      field :category do
         module(Backpex.Fields.BelongsTo)
         label("Category")
         display_field(:name)
-        live_resource(DemoWeb.CategoryLive)
       end
 
       field :word_count do

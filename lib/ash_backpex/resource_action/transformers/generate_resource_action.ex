@@ -47,7 +47,18 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
           field_name = field_config.argument
 
           # Get the argument definition for additional info
-          argument = Enum.find(action.arguments, &(&1.name == field_name))
+          # For BelongsTo fields, try to find the foreign key argument if direct lookup fails
+          argument = Enum.find(action.arguments, &(&1.name == field_name)) ||
+            (if field_config.module == Backpex.Fields.BelongsTo do
+              foreign_key_name = String.to_atom("#{field_name}_id")
+              Enum.find(action.arguments, &(&1.name == foreign_key_name))
+            else
+              nil
+            end)
+
+          if is_nil(argument) do
+            raise "No argument found for field #{inspect(field_name)}. Available arguments: #{inspect(Enum.map(action.arguments, & &1.name))}"
+          end
 
           # Build the field map
           field_map = %{
@@ -93,6 +104,14 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
               options = Map.get(field_map, :options, %{})
               options = Map.put_new(options, :upload_key, field_name)
               Map.put(field_map, :options, options)
+            else
+              field_map
+            end
+
+          # For BelongsTo fields, add the actual argument name for changeset casting
+          field_map =
+            if field_map.module == Backpex.Fields.BelongsTo do
+              Map.put(field_map, :changeset_key, argument.name)
             else
               field_map
             end
@@ -164,8 +183,18 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
 
       @impl Backpex.ResourceAction
       def base_schema(_assigns) do
-        types = Backpex.Field.changeset_types(fields())
+        types = changeset_types_with_belongs_to(fields())
         {%{}, types}
+      end
+
+      defp changeset_types_with_belongs_to(fields) do
+        fields
+        |> Enum.map(fn {name, field_options} ->
+          # For BelongsTo fields, use the changeset_key if available
+          key = Map.get(field_options, :changeset_key, name)
+          {key, field_options.type}
+        end)
+        |> Enum.into(%{})
       end
 
       @impl Backpex.ResourceAction

@@ -25,6 +25,7 @@ defmodule DemoWeb.Router do
     live_session :backpex_admin,
       on_mount: [{DemoWeb.LiveUserAuth, :live_user_demo}, Backpex.InitAssigns] do
       live_resources("/posts", PostLive)
+      live_resources("/categories", CategoryLive)
     end
   end
 end

@@ -8,8 +8,8 @@ defmodule AshBackpex.LiveResource.UploadFieldTest do
 
     attributes do
       uuid_primary_key :id
-      attribute :name, :string
-      attribute :image, Ash.Type.File
+      attribute :name, :string, public?: true
+      attribute :image, Ash.Type.File, allow_nil?: true, public?: true
     end
 
     actions do
