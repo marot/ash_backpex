@@ -48,9 +48,67 @@ defmodule MyAppWeb.Live.Admin.PostLive do
           module MyAppWeb.Live.Admin.Filters.PostStateFilter
         end
       end
+      
+      resource_actions do
+        action :send_newsletter, MyAppWeb.ResourceActions.PostSendNewsletter
+        action :import_posts, MyAppWeb.ResourceActions.PostImportCsv
+      end
     end
 end
 ```
+
+## Resource Actions
+
+Ash Backpex supports resource actions, which are global operations that don't act on specific selected items. These are perfect for operations like sending newsletters, importing data, or generating reports.
+
+### Creating a Resource Action
+
+```elixir
+defmodule MyAppWeb.ResourceActions.SendNewsletter do
+  use AshBackpex.ResourceAction
+  
+  backpex do
+    resource MyApp.Blog.Post
+    action :send_newsletter  # The Ash action name
+    label "Send Newsletter"
+    title "Send Newsletter to Subscribers"
+    
+    fields do
+      field :subject do
+        module Backpex.Fields.Text
+        label "Subject"
+      end
+      
+      field :recipient_emails do
+        module Backpex.Fields.MultiSelect
+        label "Recipients"
+        options fn _assigns ->
+          MyApp.Accounts.list_subscribers()
+          |> Enum.map(&{&1.name, &1.email})
+        end
+      end
+    end
+  end
+end
+```
+
+### Supported Features
+
+- **Automatic field derivation** from Ash action arguments
+- **Array types** with MultiSelect fields
+- **File uploads** with `Ash.Type.File`
+- **Custom validation** via changeset callbacks
+- **Base schema** support for complex forms
+- **All Backpex field types** including BelongsTo, DateTime, etc.
+
+### Field Type Mapping
+
+Ash types are automatically mapped to appropriate Backpex field modules:
+- `Ash.Type.String` → `Backpex.Fields.Text`
+- `{:array, type}` → `Backpex.Fields.MultiSelect`
+- `Ash.Type.File` → `Backpex.Fields.Upload`
+- `Ash.Type.Boolean` → `Backpex.Fields.Boolean`
+- And many more...
 
 ## Thanks!
 

@@ -15,6 +15,13 @@ defmodule DemoWeb.PostLive do
       end
 
       field(:published)
+      
+      field :category_id do
+        module(Backpex.Fields.BelongsTo)
+        label("Category")
+        display_field(:name)
+        live_resource(DemoWeb.CategoryLive)
+      end
 
       field :word_count do
         except([:new, :edit])
@@ -33,6 +40,10 @@ defmodule DemoWeb.PostLive do
 
     resource_actions do
       action(:send_email, DemoWeb.ResourceActions.PostSendEmail)
+      action(:send_newsletter, DemoWeb.ResourceActions.PostSendNewsletter)
+      action(:import_posts, DemoWeb.ResourceActions.PostImportCsv)
+      action(:generate_report, DemoWeb.ResourceActions.PostGenerateReport)
+      action(:assign_category, DemoWeb.ResourceActions.PostAssignCategory)
     end
   end
 end

@@ -31,6 +31,13 @@ defmodule Demo.Blog.Post do
     update_timestamp :updated_at
   end
 
+  relationships do
+    belongs_to :category, Demo.Blog.Category do
+      allow_nil? true
+      public? true
+    end
+  end
+
   calculations do
     calculate :word_count, :integer do
       public? true
@@ -47,7 +54,7 @@ defmodule Demo.Blog.Post do
   end
 
   actions do
-    default_accept [:title, :content, :published]
+    default_accept [:title, :content, :published, :category_id]
 
     defaults [:create, :read, :update, :destroy]
 
@@ -73,6 +80,114 @@ defmodule Demo.Blog.Post do
         IO.puts("Sending email to #{email} with title: #{post.title}")
 
         {:ok, post}
+      end
+    end
+
+    # New resource actions for demo
+    action :send_newsletter, :struct do
+      argument :subject, :string do
+        allow_nil? false
+      end
+
+      argument :content, :string do
+        allow_nil? false
+      end
+
+      argument :recipient_emails, {:array, :string} do
+        allow_nil? true
+        default []
+      end
+
+      argument :send_at, :datetime do
+        allow_nil? true
+      end
+
+      run fn input, _context ->
+        # Mock newsletter sending
+        IO.puts("Sending newsletter '#{input.arguments.subject}' to #{length(input.arguments.recipient_emails)} recipients")
+        {:ok, %{sent: length(input.arguments.recipient_emails)}}
+      end
+    end
+
+    action :import_posts, :struct do
+      argument :csv_file, Ash.Type.File do
+        allow_nil? false
+      end
+
+      argument :default_category_id, :uuid do
+        allow_nil? true
+      end
+
+      argument :publish_imported, :boolean do
+        default false
+      end
+
+      run fn input, context ->
+        # Mock CSV import
+        IO.puts("Importing posts from CSV file")
+        IO.puts("Default category: #{input.arguments.default_category_id}")
+        IO.puts("Publish imported: #{input.arguments.publish_imported}")
+        
+        # In a real implementation, you would:
+        # 1. Read the CSV file
+        # 2. Parse each row
+        # 3. Create posts with the parsed data
+        
+        {:ok, %{imported: 5}}  # Mock result
+      end
+    end
+
+    action :generate_report, :struct do
+      argument :report_type, :atom do
+        allow_nil? false
+        constraints one_of: [:monthly_summary, :category_breakdown, :author_stats]
+      end
+
+      argument :start_date, :date do
+        allow_nil? false
+      end
+
+      argument :end_date, :date do
+        allow_nil? false
+      end
+
+      argument :include_drafts, :boolean do
+        default true
+      end
+
+      run fn input, _context ->
+        # Mock report generation
+        report_type = input.arguments.report_type
+        IO.puts("Generating #{report_type} report from #{input.arguments.start_date} to #{input.arguments.end_date}")
+        
+        {:ok, %{
+          report_type: report_type,
+          total_posts: 42,
+          date_range: "#{input.arguments.start_date} - #{input.arguments.end_date}"
+        }}
+      end
+    end
+
+    action :assign_category, :struct do
+      argument :category_id, :uuid do
+        allow_nil? false
+      end
+
+      argument :conditions, :map do
+        allow_nil? true
+        default %{}
+      end
+
+      run fn input, context ->
+        # Mock bulk category assignment
+        # In a real implementation, you would:
+        # 1. Query posts based on conditions
+        # 2. Update their category_id
+        
+        IO.puts("Assigning category #{input.arguments.category_id} to posts matching conditions")
+        IO.inspect(input.arguments.conditions, label: "Conditions")
+        
+        {:ok, %{updated: 10}}  # Mock result
       end
     end
   end

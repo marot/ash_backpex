@@ -143,7 +143,13 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
       end
 
       @impl Backpex.ResourceAction
-      def changeset(change, attrs, _metadata) do
+      def base_schema(_assigns) do
+        types = Backpex.Field.changeset_types(fields())
+        {%{}, types}
+      end
+
+      @impl Backpex.ResourceAction
+      def changeset(change, attrs, metadata) do
         types =
           unquote(resource)
           |> Ash.Resource.Info.action(unquote(action.name))
@@ -156,6 +162,7 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
         change
         |> Ecto.Changeset.cast(attrs, Map.keys(types))
         |> validate_required_arguments()
+        |> maybe_validate_with_metadata(metadata)
       end
 
       defp derive_ecto_type(type) do
@@ -171,6 +178,12 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
           |> Enum.map(& &1.name)
 
         Ecto.Changeset.validate_required(changeset, required_fields)
+      end
+
+      defp maybe_validate_with_metadata(changeset, metadata) do
+        # Metadata contains :assigns and :target for context-aware validation
+        # Users can override changeset/3 to use these for custom validation
+        changeset
       end
 
       @impl Backpex.ResourceAction

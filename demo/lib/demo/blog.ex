@@ -3,5 +3,6 @@ defmodule Demo.Blog do
 
   resources do
     resource Demo.Blog.Post
+    resource Demo.Blog.Category
   end
 end
