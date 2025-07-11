@@ -29,7 +29,8 @@ defmodule AshBackpex.ResourceAction.Dsl do
       module: [
         type: :module,
         required: false,
-        doc: "The Backpex field module to use. If not specified, will be auto-derived from the argument type."
+        doc:
+          "The Backpex field module to use. If not specified, will be auto-derived from the argument type."
       ],
       label: [
         type: :string,

@@ -295,16 +295,16 @@ defmodule AshBackpex.Adapter do
           nil ->
             # Fallback: return an empty Ecto changeset
             Ecto.Changeset.change(item, attrs)
-            
+
           changeset_fn when is_function(changeset_fn, 3) ->
             # Call the resource action's changeset function
             changeset_fn.(item, attrs, %{assigns: assigns})
         end
-        
+
       _ ->
         # For regular create/update actions, use Ash changesets
         action = assigns.form.source.action
-        
+
         case assigns.form.source.action_type do
           :create ->
             Ash.Changeset.for_create(item.__struct__, action, attrs)
