@@ -87,6 +87,16 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
               field_map
             end
 
+          # Add upload_key for Upload fields
+          field_map =
+            if field_map.module == Backpex.Fields.Upload do
+              options = Map.get(field_map, :options, %{})
+              options = Map.put_new(options, :upload_key, field_name)
+              Map.put(field_map, :options, options)
+            else
+              field_map
+            end
+
           {field_name, field_map}
         end)
       else
@@ -117,6 +127,16 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
           field_map =
             if argument.allow_nil? == false do
               Map.put(field_map, :required, true)
+            else
+              field_map
+            end
+
+          # Add upload_key for Upload fields
+          field_map =
+            if field_module == Backpex.Fields.Upload do
+              options = Map.get(field_map, :options, %{})
+              options = Map.put_new(options, :upload_key, field_name)
+              Map.put(field_map, :options, options)
             else
               field_map
             end

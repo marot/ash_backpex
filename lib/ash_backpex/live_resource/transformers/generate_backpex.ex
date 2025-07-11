@@ -89,10 +89,7 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
                 |> Enum.reduce([], fn field, acc ->
                   module = field.module || field.attribute |> try_derive_module.()
 
-                  Keyword.put(
-                    acc,
-                    field.attribute,
-                    %{
+                  field_map = %{
                       module: module,
                       label: field.label || field.attribute |> atom_to_title_case.(),
                       only: field.only,
@@ -110,10 +107,24 @@ defmodule AshBackpex.LiveResource.Transformers.GenerateBackpex do
                           _ -> nil
                         end
                     }
-                    |> Map.to_list()
-                    |> Enum.reject(fn {k, v} -> is_nil(v) end)
-                    |> Map.new()
-                  )
+
+                    # Add upload_key for Upload fields
+                    field_map =
+                      if module == Backpex.Fields.Upload do
+                        options = Map.get(field_map, :options, %{})
+                        options = Map.put_new(options, :upload_key, field.attribute)
+                        Map.put(field_map, :options, options)
+                      else
+                        field_map
+                      end
+
+                    field_map =
+                      field_map
+                      |> Map.to_list()
+                      |> Enum.reject(fn {k, v} -> is_nil(v) end)
+                      |> Map.new()
+
+                    Keyword.put(acc, field.attribute, field_map)
                 end)
 
         @filters Spark.Dsl.Extension.get_entities(__MODULE__, [:backpex, :filters])
