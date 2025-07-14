@@ -403,22 +403,12 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
           end)
 
         # Execute the generic action
-        try do
-          result =
-            resource
-            |> Ash.ActionInput.for_action(action_name, processed_arguments)
-            |> Ash.run_action!(domain: domain)
+        result =
+          resource
+          |> Ash.ActionInput.for_action(action_name, processed_arguments)
+          |> Ash.run_action!(domain: domain)
 
-          {:ok, Phoenix.LiveView.put_flash(socket, :info, "Action completed successfully")}
-        rescue
-          e ->
-            changeset =
-              %{}
-              |> Ecto.Changeset.cast(%{}, [])
-              |> Ecto.Changeset.add_error(:base, Exception.message(e))
-
-            {:error, changeset}
-        end
+        {:ok, Phoenix.LiveView.put_flash(socket, :info, "Action completed successfully")}
       end
 
       # Generate upload callbacks for each upload field
