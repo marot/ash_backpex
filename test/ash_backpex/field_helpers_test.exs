@@ -37,7 +37,9 @@ defmodule AshBackpex.FieldHelpersTest do
     test "derives array types correctly" do
       assert FieldHelpers.derive_ecto_type({:array, Ash.Type.String}) == {:array, :string}
       assert FieldHelpers.derive_ecto_type({:array, Ash.Type.Integer}) == {:array, :integer}
-      assert FieldHelpers.derive_ecto_type({:array, {:array, Ash.Type.String}}) == {:array, {:array, :string}}
+
+      assert FieldHelpers.derive_ecto_type({:array, {:array, Ash.Type.String}}) ==
+               {:array, {:array, :string}}
     end
 
     test "derives string for unknown types" do

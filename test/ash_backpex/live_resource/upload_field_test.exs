@@ -30,7 +30,7 @@ defmodule AshBackpex.LiveResource.UploadFieldTest do
 
     backpex do
       resource Product
-      layout {AshBackpex.Test.Layouts, :admin}
+      layout({AshBackpex.Test.Layouts, :admin})
 
       fields do
         field :name

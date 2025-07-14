@@ -77,8 +77,6 @@ defmodule Demo.Blog.Post do
         post = Ash.get!(__MODULE__, post_id, domain: context.domain)
 
         # Mock sending email
-        IO.puts("Sending email to #{email} with title: #{post.title}")
-
         {:ok, post}
       end
     end
@@ -104,7 +102,6 @@ defmodule Demo.Blog.Post do
 
       run fn input, _context ->
         # Mock newsletter sending
-        IO.puts("Sending newsletter '#{input.arguments.subject}' to #{length(input.arguments.recipient_emails)} recipients")
         {:ok, %{sent: length(input.arguments.recipient_emails)}}
       end
     end
@@ -123,17 +120,26 @@ defmodule Demo.Blog.Post do
       end
 
       run fn input, context ->
-        # Mock CSV import
-        IO.puts("Importing posts from CSV file")
-        IO.puts("Default category: #{input.arguments[:category_id]}")
-        IO.puts("Publish imported: #{input.arguments.publish_imported}")
+        csv_file = input.arguments.csv_file
 
-        # In a real implementation, you would:
-        # 1. Read the CSV file
-        # 2. Parse each row
-        # 3. Create posts with the parsed data
+            # Read file contents
+            case Ash.Type.File.open(csv_file, [:read, :utf8]) do
+              {:ok, io_device} ->
+                # Read and display file contents
+                contents = IO.read(io_device, :eof)
+                :ok = File.close(io_device)
 
-        {:ok, %{imported: 5}}  # Mock result
+                # Count lines
+                lines = String.split(contents, "\n", trim: true)
+
+                {:ok, %{
+                  imported: length(lines) - 1,  # Assuming first line is header
+                  file_size: byte_size(contents),
+                }}
+
+              {:error, reason} ->
+                {:error, "Failed to open CSV file: #{inspect(reason)}"}
+            end
       end
     end
 
@@ -158,7 +164,6 @@ defmodule Demo.Blog.Post do
       run fn input, _context ->
         # Mock report generation
         report_type = input.arguments.report_type
-        IO.puts("Generating #{report_type} report from #{input.arguments.start_date} to #{input.arguments.end_date}")
 
         {:ok, %{
           report_type: report_type,
@@ -178,8 +183,6 @@ defmodule Demo.Blog.Post do
         # In a real implementation, you would:
         # 1. Query posts based on conditions
         # 2. Update their category_id
-
-        IO.puts("Assigning category #{input.arguments.category_id} to posts matching conditions")
 
         {:ok, %{updated: 10}}  # Mock result
       end

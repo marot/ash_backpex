@@ -259,10 +259,6 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
                         Function.capture(__MODULE__, unquote(:"put_upload_change_for_#{name}"), 6)
                       )
                       |> Map.put_new(
-                        :consume_upload,
-                        Function.capture(__MODULE__, unquote(:"consume_upload_for_#{name}"), 4)
-                      )
-                      |> Map.put_new(
                         :remove_uploads,
                         Function.capture(__MODULE__, unquote(:"remove_uploads_for_#{name}"), 3)
                       )
@@ -371,6 +367,7 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
       def handle(socket, params) do
         resource = @resource
         action_name = @action_name
+        fields = fields()
 
         # Convert params to action arguments
         arguments =
@@ -385,16 +382,47 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
         # Get domain from resource
         domain = Ash.Resource.Info.domain(resource)
 
-        # Process file arguments - convert paths to Ash.Type.File
+        # Process file arguments - handle uploads
         action = Ash.Resource.Info.action(resource, action_name)
 
         processed_arguments =
           Enum.reduce(arguments, %{}, fn {key, value}, acc ->
             arg = Enum.find(action.arguments, &(&1.name == key))
+            field_config = fields[key]
 
             processed_value =
-              if arg && arg.type == Ash.Type.File && is_binary(value) do
-                Ash.Type.File.from_path(value)
+              if arg && arg.type == Ash.Type.File && field_config &&
+                   field_config.module == Backpex.Fields.Upload do
+                # For upload fields, we need to consume the upload from the socket
+                upload_key = field_config.upload_key || key
+
+                if Map.has_key?(socket.assigns[:uploads] || %{}, upload_key) do
+                  # Consume the uploaded file and get the path
+                  uploaded_files =
+                    Phoenix.LiveView.consume_uploaded_entries(socket, upload_key, fn meta,
+                                                                                     entry ->
+                      # Use our helper to consume the upload
+                      consume_upload_entry(meta, entry)
+                    end)
+
+                  case uploaded_files do
+                    [{:ok, path} | _] ->
+                      Ash.Type.File.from_path(path)
+
+                    [path | _] when is_binary(path) ->
+                      Ash.Type.File.from_path(path)
+
+                    _ ->
+                      nil
+                  end
+                else
+                  # No upload found, try using value as path if it exists
+                  if is_binary(value) && value != "" do
+                    Ash.Type.File.from_path(value)
+                  else
+                    nil
+                  end
+                end
               else
                 value
               end
@@ -409,6 +437,36 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
           |> Ash.run_action!(domain: domain)
 
         {:ok, Phoenix.LiveView.put_flash(socket, :info, "Action completed successfully")}
+      end
+
+      # Helper function to consume upload entries
+      defp consume_upload_entry(meta, entry) do
+        # Copy the uploaded file to a new temporary location
+        source_path = meta.path
+
+        # Create a unique temporary file path
+        temp_dir = System.tmp_dir!()
+        timestamp = :os.system_time(:microsecond)
+        extension = Path.extname(entry.client_name)
+        temp_filename = "ash_upload_#{timestamp}_#{:rand.uniform(999_999)}#{extension}"
+        dest_path = Path.join(temp_dir, temp_filename)
+
+        # Copy the file
+        case File.cp(source_path, dest_path) do
+          :ok ->
+            # Schedule cleanup after a reasonable time (5 minutes)
+            # In production, you might want a different cleanup strategy
+            spawn(fn ->
+              # 5 minutes
+              Process.sleep(300_000)
+              File.rm(dest_path)
+            end)
+
+            {:ok, dest_path}
+
+          {:error, reason} ->
+            {:error, "Failed to copy uploaded file: #{inspect(reason)}"}
+        end
       end
 
       # Generate upload callbacks for each upload field
@@ -443,7 +501,7 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
                       elem(uploaded_entries, 0)
                   end
 
-                files = existing_files ++ Enum.map(new_entries, fn entry -> file_name(entry) end)
+                files = existing_files ++ Enum.map(new_entries, fn entry -> entry.client_name end)
 
                 result =
                   case files do
@@ -461,15 +519,6 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
               end
             end,
 
-            # consume_upload callback
-            quote do
-              def unquote(:"consume_upload_for_#{field_name}")(_socket, _item, _meta, entry) do
-                # For now, just return the client name as the path
-                # In production, you'd save the file and return the saved path
-                {:ok, entry.client_name}
-              end
-            end,
-
             # remove_uploads callback
             quote do
               def unquote(:"remove_uploads_for_#{field_name}")(_socket, _item, _removed_entries) do
@@ -482,7 +531,11 @@ defmodule AshBackpex.ResourceAction.Transformers.GenerateResourceAction do
 
       # Helper function for file names
       defp file_name(entry) do
-        entry.client_name
+        if is_map(entry) && Map.has_key?(entry, :client_name) do
+          entry.client_name
+        else
+          to_string(entry)
+        end
       end
     end
   end

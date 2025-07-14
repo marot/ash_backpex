@@ -80,8 +80,8 @@ defmodule AshBackpex.ResourceActionTest do
     backpex do
       resource TestResource
       action :test_action
-      label "Test Action"
-      title "Test Resource Action"
+      label("Test Action")
+      title("Test Resource Action")
     end
   end
 
@@ -96,20 +96,20 @@ defmodule AshBackpex.ResourceActionTest do
     backpex do
       resource TestResource
       action :assign_category
-      label "Assign Category"
-      title "Assign Category to Resource"
+      label("Assign Category")
+      title("Assign Category to Resource")
 
       fields do
         field :category_id do
           module Backpex.Fields.BelongsTo
-          label "Category"
-          display_field :name
-          live_resource TestCategoryLive
+          label("Category")
+          display_field(:name)
+          live_resource(TestCategoryLive)
         end
 
         field :note do
           module Backpex.Fields.Text
-          help_text "Optional note about the assignment"
+          help_text("Optional note about the assignment")
         end
       end
     end
@@ -127,14 +127,14 @@ defmodule AshBackpex.ResourceActionTest do
 
     test "derives fields from action arguments" do
       fields = TestResourceAction.fields()
-      
+
       assert fields[:string_arg][:module] == Backpex.Fields.Text
       assert fields[:string_arg][:type] == :string
       assert fields[:string_arg][:required] == true
-      
+
       assert fields[:array_arg][:module] == Backpex.Fields.MultiSelect
       assert fields[:array_arg][:type] == {:array, :string}
-      
+
       assert fields[:boolean_arg][:module] == Backpex.Fields.Boolean
       assert fields[:boolean_arg][:type] == :boolean
     end
@@ -144,8 +144,10 @@ defmodule AshBackpex.ResourceActionTest do
       changeset = TestResourceAction.changeset({base_data, base_types}, %{}, %{})
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).string_arg
-      
-      changeset = TestResourceAction.changeset({base_data, base_types}, %{"string_arg" => "test"}, %{})
+
+      changeset =
+        TestResourceAction.changeset({base_data, base_types}, %{"string_arg" => "test"}, %{})
+
       assert changeset.valid?
     end
 
@@ -159,37 +161,44 @@ defmodule AshBackpex.ResourceActionTest do
   describe "resource action with belongs_to fields" do
     test "configures belongs_to field with explicit module" do
       fields = TestAssignCategoryAction.fields()
-      
+
       assert fields[:category_id][:module] == Backpex.Fields.BelongsTo
       assert fields[:category_id][:label] == "Category"
       assert fields[:category_id][:display_field] == :name
       assert fields[:category_id][:live_resource] == TestCategoryLive
       assert fields[:category_id][:type] == Ecto.UUID
       assert fields[:category_id][:required] == true
-      
+
       assert fields[:note][:module] == Backpex.Fields.Text
       assert fields[:note][:help_text] == "Optional note about the assignment"
     end
-    
+
     test "generates valid changeset for belongs_to field" do
       {base_data, base_types} = TestAssignCategoryAction.base_schema(%{})
-      
+
       # Should be invalid without required category_id
       changeset = TestAssignCategoryAction.changeset({base_data, base_types}, %{}, %{})
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).category_id
-      
+
       # Should be valid with category_id
       category_id = Ecto.UUID.generate()
-      changeset = TestAssignCategoryAction.changeset({base_data, base_types}, %{"category_id" => category_id}, %{})
+
+      changeset =
+        TestAssignCategoryAction.changeset(
+          {base_data, base_types},
+          %{"category_id" => category_id},
+          %{}
+        )
+
       assert changeset.valid?
       assert changeset.changes.category_id == category_id
     end
-    
+
     test "includes all belongs_to field options in fields configuration" do
       fields = TestAssignCategoryAction.fields()
       category_field = fields[:category_id]
-      
+
       # Verify all BelongsTo-specific options are present
       assert Map.has_key?(category_field, :module)
       assert Map.has_key?(category_field, :label)
