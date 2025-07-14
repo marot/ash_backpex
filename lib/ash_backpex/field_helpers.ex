@@ -85,7 +85,7 @@ defmodule AshBackpex.FieldHelpers do
       Ash.Type.UUID -> Ecto.UUID
       Ash.Type.Atom -> :string
       Ash.Type.CiString -> :string
-      Ash.Type.File -> :map
+      Ash.Type.File -> :string
       _ -> :string
     end
   end

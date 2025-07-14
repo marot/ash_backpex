@@ -114,7 +114,7 @@ defmodule Demo.Blog.Post do
         allow_nil? false
       end
 
-      argument :default_category_id, :uuid do
+      argument :category_id, :uuid do
         allow_nil? true
       end
 
@@ -125,7 +125,7 @@ defmodule Demo.Blog.Post do
       run fn input, context ->
         # Mock CSV import
         IO.puts("Importing posts from CSV file")
-        IO.puts("Default category: #{input.arguments.default_category_id}")
+        IO.puts("Default category: #{input.arguments[:category_id]}")
         IO.puts("Publish imported: #{input.arguments.publish_imported}")
 
         # In a real implementation, you would:

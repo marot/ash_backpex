@@ -79,7 +79,8 @@ config :demo, DemoWeb.Endpoint,
     web_console_logger: true,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
-      ~r"lib/demo_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/demo_web/(controllers|live|components)/.*(ex|heex)$",
+      ~r"\.\./lib/.*(ex|heex)$"
     ]
   ]
 
