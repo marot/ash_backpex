@@ -38,6 +38,7 @@ defmodule Demo.MixProject do
       {:bandit, "~> 1.0"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:igniter, "~> 0.6", only: [:dev]},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",

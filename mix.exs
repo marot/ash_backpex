@@ -45,6 +45,7 @@ defmodule AshBackpex.MixProject do
       {:backpex, github: "marot/backpex"},
       {:spark, "~> 2.0"},
       {:phoenix_html, "~> 3.0 or ~> 4.0"},
+      {:igniter, "~> 0.6", only: [:dev]},
 
       # Dev/Test dependencies
       {:ex_check, "~> 0.14", only: [:dev, :test]},
